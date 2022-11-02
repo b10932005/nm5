@@ -88,6 +88,10 @@ complex_f64 cmat_det(complex_mat *mat) {
 			if ((index - i) | 1)
 				det = -det;
 		}
+
+		/*
+		things to add
+		 */
 	}
 
 	return det;
