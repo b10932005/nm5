@@ -65,10 +65,11 @@ complex_mat *cmat_mul(complex_mat *m1, const complex_mat *m2) {
 complex_f64 cmat_det(complex_mat *mat) {
 	if (mat->row != mat->col) {
 		fprintf(stderr, "invalid matrix size!");
-		return;
+		return 0;
 	}
 
 	complex_f64 det = 1;
+	complex_f64 mul = 1;
 
 	// loop for traversing the diagonal elements
 	for (size_t i = 0; i < mat->row; i++) {
@@ -89,12 +90,23 @@ complex_f64 cmat_det(complex_mat *mat) {
 				det = -det;
 		}
 
-		/*
-		things to add
-		 */
+		for (size_t j = i + 1; j < mat->row; j++) {
+			// mat[j,:] = mat[j,:]*mat[i,i] - mat[i,:]*mat[j,i]
+			complex_f64 factor[2] = {mat->val[i * mat->col + i],
+									 mat->val[j * mat->col + i]};
+			for (size_t k = 0; k < mat->row; k++) {
+				mat->val[j * mat->col + k] =
+					(mat->val[j * mat->col + k] * factor[0]) -
+					(mat->val[i * mat->col + k] * factor[1]);
+			}
+			mul *= factor[0];
+		}
+	}
+	for (size_t i = 0; i < mat->col; i++) {
+		det *= mat->val[i * mat->col + i];
 	}
 
-	return det;
+	return det / mul;
 }
 
 void cmat_printf(const char *format, int count, ...) {
