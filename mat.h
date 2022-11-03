@@ -11,7 +11,7 @@ typedef struct {
 	complex_f64 *val;
 } complex_mat;
 
-complex_mat *cmat_new(int row, int col, complex_f64 val[row * col]) {
+complex_mat *cmat_new(int row, int col, complex_f64 *val) {
 	complex_mat *ret = (complex_mat *)malloc(sizeof(complex_mat));
 	ret->row = row;
 	ret->col = col;
@@ -19,7 +19,7 @@ complex_mat *cmat_new(int row, int col, complex_f64 val[row * col]) {
 	return ret;
 }
 
-complex_mat *cmat_col_replace(complex_mat *mat, complex_mat *vec, int col) {
+complex_mat *cmat_col_replace(const complex_mat *mat, const complex_mat *vec, int col) {
 	if (mat->row != vec->row || vec->col != 1) {
 		fprintf(stderr, "matrix size not matched!");
 		return NULL;
@@ -37,7 +37,7 @@ complex_mat *cmat_col_replace(complex_mat *mat, complex_mat *vec, int col) {
 	return cmat_new(mat->row, mat->col, arr);
 }
 
-complex_mat *cmat_mul(complex_mat *m1, const complex_mat *m2) {
+complex_mat *cmat_mul(const complex_mat *m1, const complex_mat *m2) {
 	if (m1->col != m2->row) {
 		fprintf(stderr, "matrix size not matched!");
 		return NULL;
@@ -62,48 +62,48 @@ complex_mat *cmat_mul(complex_mat *m1, const complex_mat *m2) {
 	return ret;
 }
 
-complex_f64 cmat_det(complex_mat *mat) {
+complex_f64 cmat_det(const complex_mat *mat) {
 	if (mat->row != mat->col) {
 		fprintf(stderr, "invalid matrix size!");
 		return 0;
 	}
 
-	complex_f64 det = 1;
-	complex_f64 mul = 1;
+	complex_f64 det = 1, mul = 1;
+	complex_mat *temp = cmat_new(mat->row, mat->col, mat->val);
 
 	// loop for traversing the diagonal elements
-	for (size_t i = 0; i < mat->row; i++) {
+	for (size_t i = 0; i < temp->row; i++) {
 		size_t index = i;
 		// find the index with non zero value
-		for (; index < mat->row && mat->val[index * mat->col + i] == 0; index++) {
+		for (; index < temp->row && temp->val[index * temp->col + i] == 0; index++) {
 		}
-		if (index == mat->row)
+		if (index == temp->row)
 			return 0;
 		if (index != i) {
 			// swap the row
-			for (size_t j = 0; j < mat->row; j++) {
-				complex_f64 temp = mat->val[index * mat->col + j];
-				mat->val[index * mat->col + j] = mat->val[i * mat->col + j];
-				mat->val[i * mat->col + j] = temp;
+			for (size_t j = 0; j < temp->row; j++) {
+				complex_f64 swap = temp->val[index * temp->col + j];
+				temp->val[index * temp->col + j] = temp->val[i * temp->col + j];
+				temp->val[i * temp->col + j] = swap;
 			}
 			if ((index - i) | 1)
 				det = -det;
 		}
 
-		for (size_t j = i + 1; j < mat->row; j++) {
+		for (size_t j = i + 1; j < temp->row; j++) {
 			// mat[j,:] = mat[j,:]*mat[i,i] - mat[i,:]*mat[j,i]
-			complex_f64 factor[2] = {mat->val[i * mat->col + i],
-									 mat->val[j * mat->col + i]};
-			for (size_t k = 0; k < mat->row; k++) {
-				mat->val[j * mat->col + k] =
-					(mat->val[j * mat->col + k] * factor[0]) -
-					(mat->val[i * mat->col + k] * factor[1]);
+			complex_f64 factor[2] = {temp->val[i * temp->col + i],
+									 temp->val[j * temp->col + i]};
+			for (size_t k = 0; k < temp->row; k++) {
+				temp->val[j * temp->col + k] =
+					(temp->val[j * temp->col + k] * factor[0]) -
+					(temp->val[i * temp->col + k] * factor[1]);
 			}
 			mul *= factor[0];
 		}
 	}
-	for (size_t i = 0; i < mat->col; i++) {
-		det *= mat->val[i * mat->col + i];
+	for (size_t i = 0; i < temp->col; i++) {
+		det *= temp->val[i * temp->col + i];
 	}
 
 	return det / mul;
@@ -127,5 +127,15 @@ void cmat_printf(const char *format, int count, ...) {
 			printf("|\n");
 		}
 		puts("");
+	}
+}
+
+void cf64_printf(const char *format, int count, ...) {
+	va_list list;
+	va_start(list, count);
+
+	for (size_t i = 0; i < count; i++) {
+		complex_f64 cur = va_arg(list, complex_f64);
+		printf(format, creal(cur), cimag(cur));
 	}
 }
