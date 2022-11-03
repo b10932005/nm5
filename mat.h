@@ -2,7 +2,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 typedef double complex complex_f64;
 typedef struct {
@@ -43,20 +42,19 @@ complex_mat *cmat_mul(const complex_mat *m1, const complex_mat *m2) {
 		return NULL;
 	}
 
-	complex_mat *ret = (complex_mat *)malloc(sizeof(complex_mat));
-	ret->row = m1->row;
-	ret->col = m2->col;
+	complex_mat *ret = cmat_new(m1->row, m2->col, NULL);
 	ret->val = (complex_f64 *)calloc(m1->row * m2->col, sizeof(complex_f64));
 
 	// i th row in m1
 	for (size_t i = 0; i < m1->row; i++) {
 		// j th col in m2
-		for (size_t j = 0; j < m2->col; j++)
+		for (size_t j = 0; j < m2->col; j++) {
 			// k th element in m1,m2
 			for (size_t k = 0; k < m1->row; k++) {
 				ret->val[i * ret->col + j] +=
 					m1->val[i * m1->col + k] * m2->val[k * m2->col + j];
 			}
+		}
 	}
 
 	return ret;
