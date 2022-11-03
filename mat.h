@@ -69,7 +69,12 @@ complex_f64 cmat_det(const complex_mat *mat) {
 	}
 
 	complex_f64 det = 1, mul = 1;
-	complex_mat *temp = cmat_new(mat->row, mat->col, mat->val);
+	// copy input
+	complex_mat *temp = cmat_new(mat->row, mat->col, NULL);
+	temp->val = (complex_f64 *)malloc(temp->row * temp->col * sizeof(complex_f64));
+	for (size_t i = 0; i < temp->row * temp->col; i++) {
+		temp->val[i] = mat->val[i];
+	}
 
 	// loop for traversing the diagonal elements
 	for (size_t i = 0; i < temp->row; i++) {
