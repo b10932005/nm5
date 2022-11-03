@@ -36,6 +36,7 @@ complex_mat *cmat_col_replace(const complex_mat *mat, const complex_mat *vec, in
 	return cmat_new(mat->row, mat->col, arr);
 }
 
+// not used
 complex_mat *cmat_mul(const complex_mat *m1, const complex_mat *m2) {
 	if (m1->col != m2->row) {
 		fprintf(stderr, "matrix size not matched!");
@@ -109,7 +110,19 @@ complex_f64 cmat_det(const complex_mat *mat) {
 		det *= temp->val[i * temp->col + i];
 	}
 
+	free(temp->val);
+	free(temp);
 	return det / mul;
+}
+
+// return array length should be m1->row*m2->col
+complex_f64 *cmat_solve(const complex_mat *mat, const complex_mat *vec) {
+	complex_f64 *ret = (complex_f64 *)malloc(mat->row * vec->col * sizeof(complex_f64));
+	complex_f64 det = cmat_det(mat);
+	for (size_t i = 0; i < mat->row * vec->col; i++) {
+		ret[i] = cmat_det(cmat_col_replace(mat, vec, i)) / det;
+	}
+	return ret;
 }
 
 void cmat_printf(const char *format, int count, ...) {
