@@ -1,4 +1,4 @@
-#include "mat.h"
+#include "cmat.h"
 
 int main() {
 	complex_f64 a[] = {3 + 2 * I, 4, -I, 1},
